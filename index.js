@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const rateLimit = require("express-rate-limit");
 const jwt = require('jsonwebtoken');
-const secretKey = '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';
+const secretKey = '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';
 const limiter = rateLimit({
   windowMs: 60 * 1000, 
   max: 5,
