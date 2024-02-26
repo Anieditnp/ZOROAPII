@@ -1,20 +1,13 @@
 const express = require('express');
 const app = express();
-const rateLimit = require("express-rate-limit");
 const jwt = require('jsonwebtoken');
 
+// Dummy function to simulate processing user question
 async function processUserQuestion(question) {
   return "Answer to " + question;
 }
 
 const secretKey = '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';
-const limiter = rateLimit({
-  windowMs: 60 * 1000, 
-  max: 5,
-  message: "Too many requests from this IP, please try again later."
-});
-
-app.use('/api/', limiter);
 
 function authenticateToken(req, res, next) {
   const token = req.headers['authorization'];
