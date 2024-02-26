@@ -1,49 +1,68 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const crypto = require('crypto');
+const OpenAI = require('openai'); // OpenAI package
+
 const app = express();
-const jwt = require('jsonwebtoken');
+const PORT = process.env.PORT || 3000;
+const APP_SECRET = 'EAAGNO4a7r2wBOzuH621hNHVrKBGW9tvcvTV66zVSI1AqPuBmamq8ZCYEh9f9dHw6GFVs8fAZAW0KDhqRsaU365igCD1lFChaC5D8kmE1lYPUaoZBlqy3biZCiRT3uHPYaoJa6XDt0XWxS5HWeZBkPAlI0elLfGf9minpYo3makYjlrmv0UZAs57ePZBugZDZD'; 
+const OPENAI_SECRET_KEY = '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'; 
+const openai = new OpenAI(OPENAI_SECRET_KEY);
 
-// Dummy function to simulate processing user question
-async function processUserQuestion(question) {
-  return "Answer to " + question;
-}
+app.use(bodyParser.json());
 
-const secretKey = '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';
+// Webhook endpoint for receiving messages from Messenger
+app.post('/webhook', (req, res) => {
+  const body = req.body;
 
-function authenticateToken(req, res, next) {
-  const token = req.headers['authorization'];
-
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) return res.sendStatus(403);
-
-    req.user = user;
-    next();
-  });
-}
-
-app.get('/', (req, res) => {
-  res.send('Welcome to Zoro API');
-});
-
-app.get('/api/question', authenticateToken, async (req, res) => {
-  try {
-    const response = await processUserQuestion(req.query.question);
-    res.json({ answer: response });
-  } catch (error) {
-    res.status(500).json({ error: 'An error occurred while processing your request.' });
+  // Verify request signature to ensure it's from Facebook
+  if (verifySignature(req.headers['x-hub-signature'], JSON.stringify(body))) {
+    // Handle incoming messages
+    handleMessages(body);
+    res.status(200).send('OK');
+  } else {
+    res.sendStatus(403);
   }
 });
 
-app.get('/api/owner', (req, res) => {
-  res.json({ owner: 'Strawhat Luffy' });
-});
+// Verify the request signature
+function verifySignature(signature, body) {
+  const hash = crypto.createHmac('sha1', APP_SECRET).update(body).digest('hex');
+  const expectedSignature = `sha1=${hash}`;
+  return signature === expectedSignature;
+}
 
-app.use((req, res) => {
-  res.status(404).send('404 - Not Found');
-});
+// Handle incoming messages from Messenger
+function handleMessages(body) {
+  // Process incoming messages and send responses in the style of Zoro
+  // You can use OpenAI to generate Zoro-like responses here
+  const userMessage = body.message;
+  
+  // Use OpenAI to generate Zoro-like responses
+  openai.complete({
+    engine: 'davinci',
+    prompt: userMessage,
+    maxTokens: 150,
+    temperature: 0.9,
+    topP: 1,
+    presencePenalty: 0,
+    frequencyPenalty: 0,
+    stop: ['\n'],
+  }).then((response) => {
+    const zoroResponse = response.data.choices[0].text.trim();
+    // Send zoroResponse back to Messenger
+    sendMessengerResponse(zoroResponse);
+  }).catch((error) => {
+    console.error('Error generating Zoro-like response:', error);
+    // Handle error
+  });
+}
 
-const PORT = process.env.PORT || 3000; // Use port from environment variable or default to 3000
+// Function to send response back to Messenger
+function sendMessengerResponse(response) {
+  // Implement logic to send response back to Messenger
+}
+
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Zoro API is running on port ${PORT}`);
 });
