@@ -2,6 +2,11 @@ const express = require('express');
 const app = express();
 const rateLimit = require("express-rate-limit");
 const jwt = require('jsonwebtoken');
+
+async function processUserQuestion(question) {
+  return "Answer to " + question;
+}
+
 const secretKey = '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';
 const limiter = rateLimit({
   windowMs: 60 * 1000, 
@@ -11,11 +16,10 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
-
 function authenticateToken(req, res, next) {
   const token = req.headers['authorization'];
 
-  if (token == null) return res.sendStatus(401);
+  if (!token) return res.sendStatus(401);
 
   jwt.verify(token, secretKey, (err, user) => {
     if (err) return res.sendStatus(403);
@@ -24,6 +28,10 @@ function authenticateToken(req, res, next) {
     next();
   });
 }
+
+app.get('/', (req, res) => {
+  res.send('Welcome to Zoro API');
+});
 
 app.get('/api/question', authenticateToken, async (req, res) => {
   try {
@@ -38,6 +46,11 @@ app.get('/api/owner', (req, res) => {
   res.json({ owner: 'Strawhat Luffy' });
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+app.use((req, res) => {
+  res.status(404).send('404 - Not Found');
+});
+
+const PORT = process.env.PORT || 3000; // Use port from environment variable or default to 3000
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
