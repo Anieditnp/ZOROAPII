@@ -11,6 +11,11 @@ const openai = new OpenAI(OPENAI_SECRET_KEY);
 
 app.use(bodyParser.json());
 
+// Handler for GET requests to the root route
+app.get('/', (req, res) => {
+  res.send('Welcome to Zoro API');
+});
+
 // Webhook endpoint for receiving messages from Messenger
 app.post('/webhook', (req, res) => {
   const body = req.body;
